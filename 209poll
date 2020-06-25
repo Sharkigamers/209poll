@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+
+import sys
+from math import sqrt
+
+def beginDelimiter():
+    return 0
+
+def endDelimiter():
+    return 100
+
+class Poll():
+    def __init__(self):
+        try:
+            self.population = int(sys.argv[1])
+            if (self.population <= 1):
+                exit(84)
+            self.sampleSize = int(sys.argv[2])
+            if (self.sampleSize <= 0 or self.sampleSize > self.population):
+                exit(84)
+            self.votingIntention = float(sys.argv[3])
+            if (self.votingIntention < 0 or self.votingIntention > 100):
+                exit(84)
+            self.variance = 0
+            self.multiplier95 = {"begin": beginDelimiter(), "end": endDelimiter()}
+            self.multiplier99 = {"begin": beginDelimiter(), "end": endDelimiter()}
+        except:
+            exit(84)
+
+    def calculateVariance(self):
+        validUsingVotingIntention = self.votingIntention / 100
+        dividend = validUsingVotingIntention * (1 - validUsingVotingIntention)
+        if (self.sampleSize == 0):
+            firstPart = 0
+        else:
+            firstPart = dividend / self.sampleSize
+        if (self.population <= 1):
+            return 0
+        else:
+            return firstPart * ((self.population - self.sampleSize) / (self.population - 1))
+
+    def calculateConfidencePercent(self, multiplier):
+        if (self.variance < 0):
+            return 0
+        return (2 * multiplier * sqrt(self.variance)) / 2 * 100
+
+    def calculation(self):
+        self.variance = self.calculateVariance()
+        firstConfidence = self.calculateConfidencePercent(1.96)
+        begin = self.votingIntention - firstConfidence
+        end = self.votingIntention + firstConfidence
+        if (begin > beginDelimiter()):
+            self.multiplier95["begin"] = begin
+        if (end < endDelimiter()):
+            self.multiplier95["end"] = end
+        secondConfidence = self.calculateConfidencePercent(2.58)
+        begin = self.votingIntention - secondConfidence
+        end = self.votingIntention + secondConfidence
+        if (begin > beginDelimiter()):
+            self.multiplier99["begin"] = begin
+        if (end < endDelimiter()):
+            self.multiplier99["end"] = end
+
+    def display(self):
+        print(
+            ("Population size: {}\n"
+            "Sample size: {}\n"
+            "Voting intentions: {:.2f}%\n"
+            "Variance: {:.6f}\n"
+            "95% confidence interval: [{:.2f}%; {:.2f}%]\n"
+            "99% confidence interval: [{:.2f}%; {:.2f}%]").format(
+                self.population,
+                self.sampleSize,
+                self.votingIntention,
+                self.variance,
+                self.multiplier95["begin"],
+                self.multiplier95["end"],
+                self.multiplier99["begin"],
+                self.multiplier99["end"]
+            ), end='\n'
+        )
+
+def help():
+    try:
+        file = open("HELP.txt", "r")
+        print(file.read())
+    except:
+        print("Error: Missing help file")
+
+if __name__ == "__main__":
+    argsLength = len(sys.argv)
+
+    if (argsLength == 2 and sys.argv[1] == "-h"):
+        help()
+    elif (argsLength != 4):
+        exit(84)
+    else:
+        poll = Poll()
+        poll.calculation()
+        poll.display()
+    exit(0)

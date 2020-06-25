@@ -1,0 +1,9 @@
+Init class 10min: Done
+
+Calculate Variance 10min: Done
+
+Calculate confidence interval 20min: Done
+
+Error gestion 5min: Done
+
+Functionnal tests 10min: Done
